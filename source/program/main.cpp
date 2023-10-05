@@ -39,28 +39,31 @@ static void Callback(uintptr_t _this, uintptr_t unk)
 
 static constexpr int s_emitImpl = 0x000afd244;
 static constexpr int s_searchAssetCallTableByNameOffset = 0x00afd150;
-static constexpr int s_searchAssetCallTableByNameInlinedOne = 0x009ffe64;
+// static constexpr int s_searchAssetCallTableByNameInlinedOne = 0x009ffe64;
+static constexpr int s_searchAssetCallTableByNameInlinedOne = 0x009fff60;
 static constexpr int s_searchAssetCallTableByNameInlinedTwo = 0x00a3aa78;
 static constexpr int s_searchAssetCallTableByNameInlinedThree = 0x00f85148;
 static constexpr int s_searchAssetCallTableByNameInlinedThreeLabel = 0x00f852c4;
 static constexpr int s_searchAssetCallTableByNameInlinedFour = 0x02295f0c;
 
-HOOK_DEFINE_REPLACE(emitImpl) {
-	static void Callback(uintptr_t param_1, xlink2::Locator* param_2, void* param_3, void* param_4) {
+HOOK_DEFINE_TRAMPOLINE(emitImpl) {
+	static void Callback(uintptr_t* param_1, xlink2::Locator* param_2, void* param_3, void* param_4) {
 
-	    // If is elink, skip
-	    if ((*(uint*)(param_1 + 0x18) & 0x800) != 0) {
-	        return;
-}
 
-char buf[500];
+	    return Orig(param_1, param_2, param_3, param_4);
+// 	    // If is elink, skip
+// 	    if ((*(uint*)(param_1 + 0x18) & 0x800) != 0) {
+// 	        return;
+// }
 
-if (param_2 && param_2->mResAssetCallTable)
-{
-	// PRINT("Valid Locator Found")
-	// PRINT(param_2 -> mResAssetCallTable -> mKeyName)
-	// param_2 -> mResAssetCallTable -> mKeyName = "Custom";
-}
+// char buf[500];
+
+// if (param_2 && param_2->mResAssetCallTable)
+// {
+// 	// PRINT("Valid Locator Found")
+// 	// PRINT(param_2 -> mResAssetCallTable -> mKeyName)
+// 	// param_2 -> mResAssetCallTable -> mKeyName = "Custom";
+// }
 
 // char buf[500];
 // PRINT("emitImpl")
@@ -139,7 +142,7 @@ if ((lVar5 != 0) && (*(char*)(lVar5 + 0xb0) != '\0'))
 searchResult = (xlink2::ResAssetCallTable*)0x0;
 FOUND_ITEM : locator->mResAssetCallTable = searchResult;
 
-if (locator && locator->mResAssetCallTable)// && strstr(locator->mResAssetCallTable->mKeyName, "Equip"))
+if (locator && locator->mResAssetCallTable && strstr(locator->mResAssetCallTable->mKeyName, "PV"))
 {
 	// PRINT("Valid Locator Found")
 	mResAssetCallTableCopy = *locator->mResAssetCallTable;
@@ -153,15 +156,14 @@ return true;
 }
 ;
 
-HOOK_DEFINE_REPLACE(searchAssetCallTableByNameInlinedOne) {
-	static void Callback(uintptr_t param_1, char* param_2, uintptr_t param_3, uintptr_t param_4) {
-	    // char buf[500];
-
-	    // PRINT("searchAssetCallTableByNameInlinedOne")
-	    // PRINT(param_2)
-	    // PRINT("================")
-
-	    return;
+HOOK_DEFINE_INLINE(searchAssetCallTableByNameInlinedOne) {
+	static void Callback(exl::hook::InlineCtx* ctx) {
+        // char buf[100];
+        // for(int i = 0; i < 29; i++) {
+        //     PRINT("X%d: %lx", i, ctx->X[i]);
+        // }
+        // PRINT("FP: %lx", ctx->X[29]);
+        // PRINT("LR: %lx", ctx->X[30]);
 }
 }
 ;
@@ -204,6 +206,8 @@ return;
 
 extern "C" void exl_main(void* x0, void* x1)
 {
+    exl::hook::Initialize();
+
 	char buf[500];
 	PRINT("loaded");
 	// if(!exlnk::IsSupportedVersion()) {
@@ -211,8 +215,8 @@ extern "C" void exl_main(void* x0, void* x1)
 	//     return;
 	// }
 
-	// emitImpl::InstallAtOffset(s_emitImpl);
-	searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset);
+	emitImpl::InstallAtOffset(s_emitImpl);
+	// searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset);
 	// searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne);
 	// searchAssetCallTableByNameInlinedTwo::InstallAtOffset(s_searchAssetCallTableByNameInlinedTwo);
 	// searchAssetCallTableByNameInlinedThree::InstallAtOffset(s_searchAssetCallTableByNameInlinedThree);
