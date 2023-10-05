@@ -86,8 +86,9 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 
         // arg.mAssetName->mPtr = "Weapon_Sword_Metal_Equip02";
         PRINT("AssetName: %s", arg.mAssetName->mPtr);
-        BASE(replaceAssetInfo(assetInfo, arg));
-        return 0;
+        PRINT("mResAssetCallTable: %s", arg.mResAssetCallTable->mKeyName);
+        //BASE(replaceAssetInfo(assetInfo, arg));
+        return 1;
     }
     virtual int unk2(EventArg const &arg)
     {

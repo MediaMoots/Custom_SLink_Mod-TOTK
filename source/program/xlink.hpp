@@ -100,9 +100,11 @@ namespace xlink2 {
         struct ReplaceAssetInfoArg {
             sead::SafeString* mAssetName;
             UserInstanceSLink* mUserInstance;
-            EventSLink* mEvent;
+		    void* unk1;
+            void* unk2;
             ResAssetCallTable const* mResAssetCallTable;
-        };
+		    
+	    };
 
         virtual ~IEventCallbackSLink() {}
 
