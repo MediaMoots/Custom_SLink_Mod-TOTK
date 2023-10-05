@@ -6,5 +6,6 @@
 #endif
 
 #include "nn/fs.hpp"
+#include "nn/oe.hpp"
 #include "nn/os.hpp"
 #include "nn/time.hpp"
