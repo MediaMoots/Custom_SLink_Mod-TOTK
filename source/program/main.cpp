@@ -26,6 +26,10 @@ static constexpr int s_searchAssetCallTableByNameInlinedThree = 0x00f85148;
 static constexpr int s_searchAssetCallTableByNameInlinedThreeLabel = 0x00f852c4;
 static constexpr int s_searchAssetCallTableByNameInlinedFour = 0x02295f0c;
 
+// Global Variables
+static xlink2::ResAssetCallTable s_cachedResAssetCallTable {};
+char customPrefix[] = "CSM_";
+
 // SLink Helper Functions
 
 // Get pointer to the callback object pointer in the SLink system.
@@ -41,135 +45,146 @@ static HookedFuncType* GetHookFuncPtr()
 	return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset>();
 }
 
+// Helper functions
+
+// Combine 2 char* to a single char*
+static char* CombineChars(char* char1, char* char2)
+{
+	// Prepare variables
+	size_t len1 = strlen(char1);
+	size_t len2 = strlen(char2);
+	size_t combinedLength = len1 + len2;
+
+	// Allocate memory for the new combined string
+	char* newKeyname = new char[combinedLength + 1];
+
+	// Copy the custom prefix into the new buffer
+	strcpy(newKeyname, char1);
+
+	// Concatenate the existing string to the end of the custom prefix
+	strcat(newKeyname, char2);
+
+	return newKeyname;
+}
+
 // Custom implementation of the callback object, which passes through to the original.
 struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 {
 	xlink2::IEventCallbackSLink* m_Impl = nullptr;
 
-#define BASE(...)                                                                                       \
-    if (m_Impl != nullptr)                                                                              \
-    {                                                                                                   \
-        return m_Impl->__VA_ARGS__;                                                                     \
-    }
+#define BASE(...)                   \
+	if (m_Impl != nullptr)          \
+	{                               \
+		return m_Impl->__VA_ARGS__; \
+	}
 
-    virtual ~CustomEventCallbackSLink()
-    {
-        if (m_Impl != nullptr)
-        {
-            m_Impl->~IEventCallbackSLink();
-        }
-        m_Impl = nullptr;
-    }
+	virtual ~CustomEventCallbackSLink()
+	{
+		if (m_Impl != nullptr)
+		{
+			m_Impl->~IEventCallbackSLink();
+		}
+		m_Impl = nullptr;
+	}
 
-    virtual int eventActivating(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(eventActivating(arg));
-        return 0;
-    }
-    
-    virtual void eventActivated(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(eventActivated(arg));
-    }
+	virtual int eventActivating(EventArg const& arg)
+	{
+		BASE(eventActivating(arg));
+		return 0;
+	}
 
-    virtual bool soundPrePlay(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(soundPrePlay(arg));
-        return false;
-    }
+	virtual void eventActivated(EventArg const& arg)
+	{
+		BASE(eventActivated(arg));
+	}
 
-    virtual void unk1(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk1(arg));
-    }
+	virtual bool soundPrePlay(EventArg const& arg)
+	{
+		BASE(soundPrePlay(arg));
+		return false;
+	}
 
-    virtual void soundPlayed(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(soundPlayed(arg));
-    }
+	virtual void unk1(EventArg const& arg)
+	{
+		BASE(unk1(arg));
+	}
 
-    virtual void soundCalced(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(soundCalced(arg));
-    }
+	virtual void soundPlayed(EventArg const& arg)
+	{
+		BASE(soundPlayed(arg));
+	}
+
+	virtual void soundCalced(EventArg const& arg)
+	{
+		BASE(soundCalced(arg));
+	}
 
 	virtual int replaceAssetInfo(aal::AssetInfo* assetInfo, ReplaceAssetInfoArg const& arg)
 	{
 		char buf[500];
 
-		// arg.mAssetName->mPtr = "Weapon_Sword_Metal_Equip02";
-		PRINT("AssetName: %s", arg.mAssetName->mPtr);
-		PRINT("mResAssetCallTable: %s", arg.mResAssetCallTable->mKeyName);
-        BASE(replaceAssetInfo(assetInfo, arg));
+        // If CSM_ is in key name, change the asset name
+        PRINT("CSM: replaceAssetInfo | ResAssetCallTable Key: %s", arg.mResAssetCallTable->mKeyName);
+        if (strstr(arg.mResAssetCallTable->mKeyName, customPrefix))
+        {
+            PRINT("CSM: replaceAssetInfo | ResAssetCallTable Key: %s", arg.mResAssetCallTable->mKeyName);
+            strcpy(arg.mAssetName->mPtr, arg.mResAssetCallTable->mKeyName);
+        }
+
+		BASE(replaceAssetInfo(assetInfo, arg));
 		return 0;
 	}
-    
-    virtual int unk2(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk2(arg));
-        return 0;
-    }
 
-    virtual void unk3(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk3(arg));
-    }
+	virtual int unk2(EventArg const& arg)
+	{
+		BASE(unk2(arg));
+		return 0;
+	}
 
-    virtual void unk4(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk4(arg));
-    }
+	virtual void unk3(EventArg const& arg)
+	{
+		BASE(unk3(arg));
+	}
 
-    virtual void unk5(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk5(arg));
-    }
+	virtual void unk4(EventArg const& arg)
+	{
+		BASE(unk4(arg));
+	}
 
-    virtual void unk6(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk6(arg));
-    }
+	virtual void unk5(EventArg const& arg)
+	{
+		BASE(unk5(arg));
+	}
 
-    virtual void unk7(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk7(arg));
-    }
+	virtual void unk6(EventArg const& arg)
+	{
+		BASE(unk6(arg));
+	}
 
-    virtual void unk8(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk8(arg));
-    }
+	virtual void unk7(EventArg const& arg)
+	{
+		BASE(unk7(arg));
+	}
 
-    virtual void unk9(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk9(arg));
-    }
-    
-    virtual void unk10(EventArg const &arg)
-    {
-        char buf[500];
-        BASE(unk10(arg));
-    }
+	virtual void unk8(EventArg const& arg)
+	{
+		BASE(unk8(arg));
+	}
+
+	virtual void unk9(EventArg const& arg)
+	{
+		BASE(unk9(arg));
+	}
+
+	virtual void unk10(EventArg const& arg)
+	{
+		BASE(unk10(arg));
+	}
 };
 
-// Global Variables
+// Global SLink Variables
 static CustomEventCallbackSLink s_Callback {};
 static HookedFuncType s_OriginalHookedFunc = nullptr;
-static xlink2::ResAssetCallTable s_cachedResAssetCallTable {};
 
 static void SLinkHookCallback(uintptr_t _this, uintptr_t unk)
 {
@@ -199,65 +214,48 @@ static void SLinkHookCallback(uintptr_t _this, uintptr_t unk)
 	*GetHookFuncPtr() = s_OriginalHookedFunc;
 }
 
-
-HOOK_DEFINE_TRAMPOLINE(emitImpl) {
-	static void Callback(uintptr_t * param_1, xlink2::Locator* param_2, void* param_3, void* param_4) {
-	    return Orig(param_1, param_2, param_3, param_4);
-}
-}
-;
-
-static char* CombineChars(char* char1, char* char2)
-{
-    // Prepare variables
-    size_t len1 = strlen(char1);
-    size_t len2 = strlen(char2);
-    size_t combinedLength = len1 + len2;
-
-    // Allocate memory for the new combined string
-    char* newKeyname = new char[combinedLength + 1];
-
-    // Copy the custom prefix into the new buffer
-    strcpy(newKeyname, char1);
-
-    // Concatenate the existing string to the end of the custom prefix
-    strcat(newKeyname, char2);
-
-	return newKeyname;
-}
+// Function Hooks
 
 HOOK_DEFINE_TRAMPOLINE(searchAssetCallTableByName) {
 	static bool Callback(uintptr_t self, xlink2::Locator* _locator, char* searchKeyName) {
 	    char buf[500];
 
-
+// Run the original function to get the result
 bool isValidKeyName = Orig(self, _locator, searchKeyName);
 
 // Cache a ResAssetCallTable for future use
 if (isValidKeyName && !s_cachedResAssetCallTable.mKeyName)
 {
-    PRINT("CSM: Caching ResAssetCallTable...")
+	PRINT("CSM: Caching ResAssetCallTable...")
 
-    // Create a deep copy of _locator->mResAssetCallTable
-    s_cachedResAssetCallTable = *_locator->mResAssetCallTable;
+	// Create a deep copy of _locator->mResAssetCallTable
+	s_cachedResAssetCallTable = *_locator->mResAssetCallTable;
 
-    // Allocate memory for the key name and copy it
-    s_cachedResAssetCallTable.mKeyName = new char[strlen(_locator->mResAssetCallTable->mKeyName) + 1];
-    strcpy(s_cachedResAssetCallTable.mKeyName, _locator->mResAssetCallTable->mKeyName);
+	// Allocate memory for the key name and copy it
+	s_cachedResAssetCallTable.mKeyName = new char[strlen(_locator->mResAssetCallTable->mKeyName) + 1];
+	strcpy(s_cachedResAssetCallTable.mKeyName, _locator->mResAssetCallTable->mKeyName);
 }
 
-if (!isValidKeyName && s_cachedResAssetCallTable.mKeyName)
+if ((!isValidKeyName || strstr(searchKeyName, "button_decide")) && s_cachedResAssetCallTable.mKeyName)
 {
-	PRINT(searchKeyName)
+	PRINT("CSM: searchAssetCallTableByName | %s", searchKeyName)
 
-    // Get a new keyname to use
-    char* newKeyname = CombineChars("Custom:", searchKeyName);
+	// Get a new keyname to use
+	char* newKeyname = CombineChars(customPrefix, searchKeyName);
 
-	// Change the keyname of the cached call table
-    strcpy(s_cachedResAssetCallTable.mKeyName, newKeyname);
+	// Change the keyname of the cached call table and field_10
+    s_cachedResAssetCallTable.mKeyName = new char[strlen(newKeyname) + 1];
+	strcpy(s_cachedResAssetCallTable.mKeyName, newKeyname);
+
+    _locator->field_10 = new char[strlen(newKeyname) + 1];
+	strcpy(_locator->field_10, newKeyname);
 
 	// Set modified ResAssetCallTable to the locator
 	_locator->mResAssetCallTable = &s_cachedResAssetCallTable;
+
+    PRINT("CSM: searchAssetCallTableByName, _locator->mResAssetCallTable->mKeyName | %s", _locator->mResAssetCallTable->mKeyName)
+    PRINT("CSM: searchAssetCallTableByName,  _locator->field_10 | %s", _locator->field_10)
+
 	isValidKeyName = true;
 }
 
@@ -268,37 +266,45 @@ return isValidKeyName;
 
 HOOK_DEFINE_INLINE(searchAssetCallTableByNameInlinedOne) {
 	static void Callback(exl::hook::InlineCtx * ctx) {
-	    char buf[100];
-	    // for(int i = 0; i < 29; i++) {
-	    //     PRINT("X%d: %lx", i, ctx->X[i]);
-	    // }
-	    // PRINT("FP: %lx", ctx->X[29]);
-	    // PRINT("LR: %lx", ctx->X[30]);
+	    char buf[500];
 
-	    // x0 is the result of  searchAssetCallTableByNameInlinedOne
-	    bool isValidKeyName = ctx->X[0] == 0;
-if (isValidKeyName)
+// x0 is the result of searchAssetCallTableByNameInlinedOne
+bool isValidKeyName = ctx->X[0] == 0;
+
+// x2 is searchKeyName, param_2
+char* searchKeyName = reinterpret_cast<char*>(ctx->X[2]);
+
+if ((!isValidKeyName) && s_cachedResAssetCallTable.mKeyName)
 {
-	xlink2::ResAssetCallTable* resAssetCallTable = reinterpret_cast<xlink2::ResAssetCallTable*>(ctx->X[19]);
-    if (resAssetCallTable)
-    {
-		return;
-	}
+    PRINT("CSM: searchAssetCallTableByNameInlinedOne | %s", searchKeyName)
 
-    PRINT(resAssetCallTable->mKeyName);
+	// Get a new keyname to use
+	char* newKeyname = CombineChars(customPrefix, searchKeyName);
+
+    // Change the keyname of the cached call table
+    s_cachedResAssetCallTable.mKeyName = new char[strlen(newKeyname) + 1];
+	strcpy(s_cachedResAssetCallTable.mKeyName, newKeyname);
+
+    // Swap the pointer in x19 to be our modded asset call table
+	ctx->X[19] = reinterpret_cast<uint64_t>(&s_cachedResAssetCallTable);
+
+    // Allow the function to continue
+	ctx->X[0] = 1;
 }
 }
 }
 ;
 
-// Unused Functions
+// Unused Function Hooks
+HOOK_DEFINE_TRAMPOLINE(emitImpl) {
+	static void Callback(uintptr_t * param_1, xlink2::Locator* param_2, void* param_3, void* param_4) {
+	    return Orig(param_1, param_2, param_3, param_4);
+}
+}
+;
+
 HOOK_DEFINE_REPLACE(searchAssetCallTableByNameInlinedTwo) {
 	static void Callback(uintptr_t param_1, char* param_2, char* param_3, uintptr_t param_4, uintptr_t param_5) {
-	    char buf[500];
-PRINT("searchAssetCallTableByNameInlinedTwo")
-PRINT(param_2)
-PRINT("================")
-
 return;
 }
 }
@@ -306,11 +312,6 @@ return;
 
 HOOK_DEFINE_REPLACE(searchAssetCallTableByNameInlinedThree) {
 	static void Callback(uintptr_t param_1, char* param_2, uintptr_t param_3, char** param_4, char** param_5, uintptr_t param_6, uint param_7) {
-	    char buf[500];
-PRINT("searchAssetCallTableByNameInlinedThree")
-PRINT(param_2)
-PRINT("================")
-
 return;
 }
 }
@@ -318,11 +319,6 @@ return;
 
 HOOK_DEFINE_REPLACE(searchAssetCallTableByNameInlinedFour) {
 	static void Callback(uintptr_t param_1, uintptr_t param_2, char* param_3, uintptr_t param_4, uintptr_t param_5) {
-	    char buf[500];
-PRINT("searchAssetCallTableByNameInlinedFour")
-PRINT(param_3)
-PRINT("================")
-
 return;
 }
 }
@@ -334,19 +330,19 @@ extern "C" void exl_main(void* x0, void* x1)
 	exl::hook::Initialize();
 
 	char buf[500];
-	PRINT("CSM: Loading Custom SLink Module...");
+	PRINT("CSM: Loading Custom SLink Mod...");
 
 	// Install Function hooks
-	// emitImpl::InstallAtOffset(s_emitImpl);
-	// searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset);
-	// searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne);
+	searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset);
+	searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne);
 
-    // Unused
+	// Unused
+    // emitImpl::InstallAtOffset(s_emitImpl);
 	// searchAssetCallTableByNameInlinedTwo::InstallAtOffset(s_searchAssetCallTableByNameInlinedTwo);
 	// searchAssetCallTableByNameInlinedThree::InstallAtOffset(s_searchAssetCallTableByNameInlinedThree);
 	// searchAssetCallTableByNameInlinedFour::InstallAtOffset(s_searchAssetCallTableByNameInlinedFour);
 
-    // SLink System vtable hooking
+	// SLink System vtable hooking
 	auto ptr = GetHookFuncPtr();
 	s_OriginalHookedFunc = *ptr;
 	*ptr = SLinkHookCallback;

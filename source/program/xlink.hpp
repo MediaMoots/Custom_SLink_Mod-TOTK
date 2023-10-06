@@ -128,6 +128,6 @@ namespace xlink2 {
     struct Locator{
         ResAssetCallTable* mResAssetCallTable;
         char* field_10;
-        int mType;
+        int mType = 0;
     };
 }
