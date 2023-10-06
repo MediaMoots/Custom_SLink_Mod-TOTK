@@ -34,6 +34,7 @@ char requiredPrefix[] = "CSM_";
 char presetSLinkKey[] = "button_decide";
 char senderTag[] = "CSM:";
 uintptr_t presetSLinkUser;
+sead::SafeString cachedAssetName;
 
 // SLink Helper Functions
 
@@ -124,7 +125,7 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 		BASE(soundCalced(arg));
 	}
 
-	virtual int replaceAssetInfo(aal::AssetInfo* assetInfo, ReplaceAssetInfoArg const& arg)
+	virtual int replaceAssetInfo(aal::AssetInfo* assetInfo, ReplaceAssetInfoArg& arg)
 	{
 		char buf[500];
 
@@ -132,7 +133,18 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 		if (strstr(arg.mResAssetCallTable->mKeyName, requiredPrefix))
 		{
 			PRINT("CSM: replaceAssetInfo | CSM SLink Name: %s", arg.mResAssetCallTable->mKeyName);
-			strcpy(arg.mAssetName->mPtr, arg.mResAssetCallTable->mKeyName);
+
+            PRINT("CSM: replaceAssetInfo | Original Asset Name: %s", arg.mAssetName->mPtr);
+
+            cachedAssetName.mPtr = new char[strlen(arg.mResAssetCallTable->mKeyName) + 1];
+			strcpy(cachedAssetName.mPtr, arg.mResAssetCallTable->mKeyName);
+            
+            // cachedAssetName.mPtr = new char[strlen("Sys_Challenge_Update_Renewal") + 1];
+			// strcpy(cachedAssetName.mPtr, "Sys_Challenge_Update_Renewal");
+
+			*arg.mAssetName = cachedAssetName;
+
+			PRINT("CSM: replaceAssetInfo | Modded Asset Name: %s", arg.mAssetName->mPtr);
 		}
 
 		BASE(replaceAssetInfo(assetInfo, arg));
@@ -219,6 +231,41 @@ static void SLinkHookCallback(uintptr_t _this, uintptr_t unk)
 }
 
 // Function Hooks
+char* cachedKeyName;
+static xlink2::ResAssetCallTable newResAssetCallTableEmitImpl {};
+
+HOOK_DEFINE_TRAMPOLINE(emitImpl) {
+	static void Callback(uintptr_t * param_1, xlink2::Locator* locator, void* param_3, void* param_4) {
+	    char buf[500];
+return Orig(param_1, locator, param_3, param_4);
+
+if (locator && strstr(locator->mResAssetCallTable->mKeyName, requiredPrefix))
+{
+	// Remeber the cached call table
+	cachedKeyName = new char[strlen(locator->mResAssetCallTable->mKeyName) + 1];
+    strcpy(cachedKeyName, locator->mResAssetCallTable->mKeyName);
+
+    // Run Search again to get a valid locator
+	if (!presetSLinkUser || !searchAssetCallTableByNameFun(presetSLinkUser, locator, CombineChars(senderTag, presetSLinkKey)))
+	{
+		PRINT("CSM: emitImpl | Preset Load Failed")
+		return;
+	}
+
+    // Set the name properly
+	newResAssetCallTableEmitImpl = *locator->mResAssetCallTable;
+
+	newResAssetCallTableEmitImpl.mKeyName = new char[strlen(cachedKeyName) + 1];
+	strcpy(newResAssetCallTableEmitImpl.mKeyName, cachedKeyName);
+
+    PRINT("CSM: emitImpl | Original SLink Key: %s", locator->mResAssetCallTable->mKeyName)
+	*locator->mResAssetCallTable = newResAssetCallTableEmitImpl;
+	PRINT("CSM: emitImpl | Modded SLink Key: %s", locator->mResAssetCallTable->mKeyName)
+}
+return Orig(param_1, locator, param_3, param_4);
+}
+}
+;
 
 HOOK_DEFINE_TRAMPOLINE(searchAssetCallTableByName) {
 	static bool Callback(uintptr_t self, xlink2::Locator* _locator, char* searchKeyName) {
@@ -241,6 +288,7 @@ bool isValidKeyName = Orig(self, _locator, realSearchKeyName);
 if (isValidKeyName && strstr(realSearchKeyName, presetSLinkKey) && !skipUpdate)
 {
 	PRINT("CSM: searchAssetCallTableByName | %s", realSearchKeyName)
+    PRINT(_locator->mResAssetCallTable->IsAsset() ? "Yes" : "No")
 	presetSLinkUser = self;
 	PRINT("CSM: Updating SLink Preset")
 }
@@ -264,7 +312,7 @@ if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) && !skipUpdate)
 	strcpy(newResAssetCallTable.mKeyName, searchKeyName);
 
 	// Set modified ResAssetCallTable to the locator
-	_locator->mResAssetCallTable = &newResAssetCallTable;
+	*_locator->mResAssetCallTable = newResAssetCallTable;
 
 	isValidKeyName = true;
 }
@@ -285,14 +333,18 @@ bool isValidKeyName = ctx->X[0] == 0;
 char* searchKeyName = reinterpret_cast<char*>(ctx->X[2]);
 
 // If didnt find a call table and key contains our prefix, do logic
-if (!isValidKeyName && strstr(searchKeyName, requiredPrefix))
+
+// Test
+char test[] = "mc";
+
+if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) || strstr(searchKeyName, test))
 {
 	PRINT("CSM: searchAssetCallTableByNameInlinedOne | %s", searchKeyName)
 
 	xlink2::Locator locator;
 	if (!presetSLinkUser || !searchAssetCallTableByNameFun(presetSLinkUser, &locator, CombineChars(senderTag, presetSLinkKey)))
 	{
-		PRINT("CSM: Preset Load Failed")
+		PRINT("CSM: searchAssetCallTableByNameInlinedOne | Preset Load Failed")
 		return;
 	}
 
@@ -300,8 +352,12 @@ if (!isValidKeyName && strstr(searchKeyName, requiredPrefix))
 	newResAssetCallTableInlined = *locator.mResAssetCallTable;
 
 	// Change the keyname of the cached call table
-	newResAssetCallTableInlined.mKeyName = new char[strlen(CombineChars(requiredPrefix, searchKeyName)) + 1];
-	strcpy(newResAssetCallTableInlined.mKeyName, CombineChars(requiredPrefix, searchKeyName));
+
+    // Test
+	searchKeyName = CombineChars(requiredPrefix, searchKeyName);
+
+	newResAssetCallTableInlined.mKeyName = new char[strlen(searchKeyName) + 1];
+	strcpy(newResAssetCallTableInlined.mKeyName, searchKeyName);
 
 	// Swap the pointer in x19 to be our modded asset call table
 	ctx->X[19] = reinterpret_cast<uint64_t>(&newResAssetCallTableInlined);
@@ -315,14 +371,6 @@ if (!isValidKeyName && strstr(searchKeyName, requiredPrefix))
 ;
 
 // Unused Function Hooks
-HOOK_DEFINE_TRAMPOLINE(emitImpl) {
-	static void Callback(uintptr_t * param_1, xlink2::Locator* param_2, void* param_3, void* param_4) {
-	    char buf[500];
-return Orig(param_1, param_2, param_3, param_4);
-}
-}
-;
-
 HOOK_DEFINE_REPLACE(searchAssetCallTableByNameInlinedTwo) {
 	static void Callback(uintptr_t param_1, char* param_2, char* param_3, uintptr_t param_4, uintptr_t param_5) {
 	    return;
@@ -353,11 +401,11 @@ extern "C" void exl_main(void* x0, void* x1)
 	PRINT("CSM: Loading Custom SLink Mod...");
 
 	// Install Function hooks
+	emitImpl::InstallAtOffset(s_emitImpl);
 	searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset);
 	searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne);
 
 	// Unused
-	// emitImpl::InstallAtOffset(s_emitImpl);
 	// searchAssetCallTableByNameInlinedTwo::InstallAtOffset(s_searchAssetCallTableByNameInlinedTwo);
 	// searchAssetCallTableByNameInlinedThree::InstallAtOffset(s_searchAssetCallTableByNameInlinedThree);
 	// searchAssetCallTableByNameInlinedFour::InstallAtOffset(s_searchAssetCallTableByNameInlinedFour);

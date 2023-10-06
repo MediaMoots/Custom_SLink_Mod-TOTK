@@ -113,7 +113,7 @@ namespace xlink2 {
         virtual void unk1(EventArg const&) {}
         virtual void soundPlayed(EventArg const&) {}
         virtual void soundCalced(EventArg const&) {}
-        virtual int replaceAssetInfo(aal::AssetInfo*, ReplaceAssetInfoArg const&) { return 0; }
+        virtual int replaceAssetInfo(aal::AssetInfo*, ReplaceAssetInfoArg &) { return 0; }
         virtual int unk2(EventArg const&) { return 0; }
         virtual void unk3(EventArg const&) {}
         virtual void unk4(EventArg const&) {}
