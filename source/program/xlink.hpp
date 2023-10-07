@@ -77,7 +77,8 @@ namespace xlink2 {
         int mDuration;
         int mParentIndex;
         ushort mEnumIndex;
-        bool mIsSolved;
+	    bool mIsSolved;
+        int KeyNameHash;
         union {
             ResAssetParam* mParamAsAsset;
             ResContainerParam* mParamAsContainer;
