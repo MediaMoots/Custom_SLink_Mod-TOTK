@@ -28,8 +28,7 @@ static constexpr int s_searchAssetCallTableByNameInlinedOne = 0x009fff60;
 // static constexpr int s_searchAssetCallTableByNameInlinedFour = 0x02295f0c;
 
 // Global Variables
-static xlink2::ResAssetCallTable newResAssetCallTable {};
-static xlink2::ResAssetCallTable newResAssetCallTableInlined {};
+static xlink2::ResAssetCallTable cachedResAssetCallTable {};
 
 char requiredPrefix[] = "CSM_";
 
@@ -51,28 +50,6 @@ static HookedFuncType* GetHookFuncPtr()
 	return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset>();
 }
 
-// Helper functions
-
-// Combine 2 char* to a single char*
-static char* CombineChars(char* char1, char* char2)
-{
-	// Prepare variables
-	size_t len1 = strlen(char1);
-	size_t len2 = strlen(char2);
-	size_t combinedLength = len1 + len2;
-
-	// Allocate memory for the new combined string
-	char* newKeyname = new char[combinedLength + 1];
-
-	// Copy the custom prefix into the new buffer
-	strcpy(newKeyname, char1);
-
-	// Concatenate the existing string to the end of the custom prefix
-	strcat(newKeyname, char2);
-
-	return newKeyname;
-}
-
 // Custom implementation of the callback object, which passes through to the original.
 struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 {
@@ -92,34 +69,28 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 		}
 		m_Impl = nullptr;
 	}
-
 	virtual int eventActivating(EventArg const& arg)
 	{
 		BASE(eventActivating(arg));
 		return 0;
 	}
-
 	virtual void eventActivated(EventArg const& arg)
 	{
 		BASE(eventActivated(arg));
 	}
-
 	virtual bool soundPrePlay(EventArg const& arg)
 	{
 		BASE(soundPrePlay(arg));
 		return false;
 	}
-
 	virtual void unk1(EventArg const& arg)
 	{
 		BASE(unk1(arg));
 	}
-
 	virtual void soundPlayed(EventArg const& arg)
 	{
 		BASE(soundPlayed(arg));
 	}
-
 	virtual void soundCalced(EventArg const& arg)
 	{
 		BASE(soundCalced(arg));
@@ -129,59 +100,53 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 	{
 		char buf[500];
 
-		xlink2::Locator tempLocator;
-		if (arg.mResAssetCallTable->IsAsset()
-			&& (!presetSLinkUser || !presetSLinkKey || !searchAssetCallTableByNameFun(presetSLinkUser, &tempLocator, presetSLinkKey)))
-		{
-			presetSLinkUser = s
-			elf;
-			presetSLinkKey = searchKeyName;
-			PRINT("CSM: searchAssetCallTableByName | Updating Presets with: %s", searchKeyName)
-		}
-
-		if (arg.mResAssetCallTable->IsAsset() && arg.mResAssetCallTable->mParamAsAsset)
-		{
-			PRINT("CSM: replaceAssetInfo | SLink Name: %s", arg.mResAssetCallTable->mKeyName);
-
-			PRINT("CSM: replaceAssetInfo | Param Count: %d", arg.mResAssetCallTable->mParamAsAsset->GetCount());
-
-			if (arg.mResAssetCallTable->mParamAsAsset->GetCount() >= 4)
-			{
-				PRINT("CSM: replaceAssetInfo | Param 0 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(0)->mType);
-				PRINT("CSM: replaceAssetInfo | Param 0 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(0)->mValue);
-				PRINT("CSM: replaceAssetInfo | Param 1 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(1)->mType);
-				PRINT("CSM: replaceAssetInfo | Param 1 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(1)->mValue);
-				PRINT("CSM: replaceAssetInfo | Param 2 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(2)->mType);
-				PRINT("CSM: replaceAssetInfo | Param 2 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(2)->mValue);
-				PRINT("CSM: replaceAssetInfo | Param 3 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(3)->mType);
-				PRINT("CSM: replaceAssetInfo | Param 3 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(3)->mValue);
-			}
-		}
-
-
 		// If CSM_ is in key name, change the asset name
-		if (strstr(arg.mResAssetCallTable->mKeyName, requiredPrefix))
+		bool isCSMCall = strstr(arg.mResAssetCallTable->mKeyName, requiredPrefix);
+		if (isCSMCall)
 		{
 			PRINT("CSM: replaceAssetInfo | CSM SLink Name: %s", arg.mResAssetCallTable->mKeyName);
 
 			PRINT("CSM: replaceAssetInfo | Original Asset Name: %s", arg.mAssetName->mPtr);
 
-			PRINT("CSM: replaceAssetInfo | Original Asset Duration: %d", arg.mResAssetCallTable->mDuration);
-			PRINT("CSM: replaceAssetInfo | Original Asset ID: %d", arg.mResAssetCallTable->mAssetId);
-			PRINT("CSM: replaceAssetInfo | Original EnumIndex: %d", arg.mResAssetCallTable->mEnumIndex);
-			PRINT("CSM: replaceAssetInfo | Original Parent Index: %d", arg.mResAssetCallTable->mParentIndex);
-
+			// Make a new cachedAssetName var and copy that to the mAssetName
 			sead::SafeString cachedAssetName;
-			// cachedAssetName.mPtr = new char[strlen(arg.mResAssetCallTable->mKeyName) + 1];
-			// strcpy(cachedAssetName.mPtr, arg.mResAssetCallTable->mKeyName);
-
-			cachedAssetName.mPtr = new char[strlen("Sys_Challenge_Update_Renewal") + 1];
-			strcpy(cachedAssetName.mPtr, "Sys_Challenge_Update_Renewal");
+			cachedAssetName.mPtr = new char[strlen(arg.mResAssetCallTable->mKeyName) + 1];
+			strncpy(cachedAssetName.mPtr, arg.mResAssetCallTable->mKeyName, strlen(arg.mResAssetCallTable->mKeyName) + 1);
 
 			*arg.mAssetName = cachedAssetName;
 
 			PRINT("CSM: replaceAssetInfo | Modded Asset Name: %s", arg.mAssetName->mPtr);
 		}
+
+		// GroupName offsets | Index 2
+		// System = 450297
+		// Player = 392072
+
+		if (arg.mResAssetCallTable->IsAsset() && !cachedResAssetCallTable.mParamAsAsset 
+			&& arg.mResAssetCallTable->mParamAsAsset->GetNthValue(2)->mValue == 450297)
+		{
+			cachedResAssetCallTable = *arg.mResAssetCallTable;
+			PRINT("CSM: replaceAssetInfo | Updating Presets with: %s", arg.mResAssetCallTable->mKeyName)
+		}
+
+		// if (arg.mResAssetCallTable->IsAsset() && arg.mResAssetCallTable->mParamAsAsset && strstr(arg.mResAssetCallTable->mKeyName, "PV"))
+		// {
+		// 	PRINT("CSM: replaceAssetInfo | SLink Name: %s", arg.mResAssetCallTable->mKeyName);
+
+		// 	PRINT("CSM: replaceAssetInfo | Param Count: %d", arg.mResAssetCallTable->mParamAsAsset->GetCount());
+
+		// 	if (arg.mResAssetCallTable->mParamAsAsset->GetCount() >= 4)
+		// 	{
+		// 		PRINT("CSM: replaceAssetInfo | Param 0 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(0)->mType);
+		// 		PRINT("CSM: replaceAssetInfo | Param 0 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(0)->mValue);
+		// 		PRINT("CSM: replaceAssetInfo | Param 1 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(1)->mType);
+		// 		PRINT("CSM: replaceAssetInfo | Param 1 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(1)->mValue);
+		// 		PRINT("CSM: replaceAssetInfo | Param 2 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(2)->mType);
+		// 		PRINT("CSM: replaceAssetInfo | Param 2 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(2)->mValue);
+		// 		PRINT("CSM: replaceAssetInfo | Param 3 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(3)->mType);
+		// 		PRINT("CSM: replaceAssetInfo | Param 3 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(3)->mValue);
+		// 	}
+		// }
 
 		BASE(replaceAssetInfo(assetInfo, arg));
 		return 0;
@@ -192,42 +157,34 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 		BASE(unk2(arg));
 		return 0;
 	}
-
 	virtual void unk3(EventArg const& arg)
 	{
 		BASE(unk3(arg));
 	}
-
 	virtual void unk4(EventArg const& arg)
 	{
 		BASE(unk4(arg));
 	}
-
 	virtual void unk5(EventArg const& arg)
 	{
 		BASE(unk5(arg));
 	}
-
 	virtual void unk6(EventArg const& arg)
 	{
 		BASE(unk6(arg));
 	}
-
 	virtual void unk7(EventArg const& arg)
 	{
 		BASE(unk7(arg));
 	}
-
 	virtual void unk8(EventArg const& arg)
 	{
 		BASE(unk8(arg));
 	}
-
 	virtual void unk9(EventArg const& arg)
 	{
 		BASE(unk9(arg));
 	}
-
 	virtual void unk10(EventArg const& arg)
 	{
 		BASE(unk10(arg));
@@ -277,35 +234,17 @@ HOOK_DEFINE_TRAMPOLINE(searchAssetCallTableByName) {
 // Run the original function to get the result
 bool isValidKeyName = Orig(self, _locator, searchKeyName);
 
-// if (isValidKeyName && _locator->mResAssetCallTable->IsAsset())
-// {
-// 	PRINT(searchKeyName)
-// 	PRINT(_locator->mResAssetCallTable->mIsSolved ? "Yes" : "No");
-// 	PRINT("Flags: %d", _locator->mResAssetCallTable->mEnumIndex);
-// }
-
-// Update Presets
-
 // Check if didnt find a call table
-if (!isValidKeyName && strstr(searchKeyName, requiredPrefix))
+if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) && cachedResAssetCallTable.mParamAsAsset)
 {
 	PRINT("CSM: searchAssetCallTableByName | Caught Slink Key: %s", searchKeyName)
 
-	// Try to find existing call table
-	if (!Orig(presetSLinkUser, _locator, presetSLinkKey))
-	{
-		return isValidKeyName;
-	}
-
-	// Create a deep copy of _locator->mResAssetCallTable
-	newResAssetCallTable = *_locator->mResAssetCallTable;
-
 	// Change the keyname of the cached call table
-	newResAssetCallTable.mKeyName = new char[strlen(searchKeyName) + 1];
-	strcpy(newResAssetCallTable.mKeyName, searchKeyName);
+	cachedResAssetCallTable.mKeyName = new char[strlen(searchKeyName) + 1];
+	strncpy(cachedResAssetCallTable.mKeyName, searchKeyName, strlen(searchKeyName) + 1);
 
 	// Set modified ResAssetCallTable to the locator
-	*_locator->mResAssetCallTable = newResAssetCallTable;
+	*_locator->mResAssetCallTable = cachedResAssetCallTable;
 
 	PRINT("CSM: searchAssetCallTableByName | Modded Slink Key: %s", searchKeyName)
 
@@ -334,31 +273,16 @@ char* searchKeyName = reinterpret_cast<char*>(ctx->X[2]);
 // Test
 char test[] = "mc";
 
-if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) || strstr(searchKeyName, test))
+// if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) && cachedResAssetCallTable.mKeyName)
+if ((strstr(searchKeyName, requiredPrefix) || strstr(searchKeyName, test)) && cachedResAssetCallTable.mParamAsAsset)
 {
 	PRINT("CSM: searchAssetCallTableByNameInlinedOne | Caught SLink Key: %s", searchKeyName)
 
-	xlink2::Locator locator;
-	if (!searchAssetCallTableByNameFun(presetSLinkUser, &locator, presetSLinkKey))
-	{
-		PRINT("CSM: searchAssetCallTableByNameInlinedOne | Preset Load Failed")
-		return;
-	}
-
-	// Create a deep copy of _locator->mResAssetCallTable
-	// newResAssetCallTableInlined = *locator.mResAssetCallTable;
-	newResAssetCallTableInlined = xlink2::ResAssetCallTable();
-
-	// Change the keyname of the cached call table
-
-	// Test
-	searchKeyName = CombineChars(requiredPrefix, searchKeyName);
-
-	newResAssetCallTableInlined.mKeyName = new char[strlen(searchKeyName) + 1];
-	strcpy(newResAssetCallTableInlined.mKeyName, searchKeyName);
+	cachedResAssetCallTable.mKeyName = new char[strlen(searchKeyName) + 1];
+	strncpy(cachedResAssetCallTable.mKeyName, searchKeyName, strlen(searchKeyName) + 1);
 
 	// Swap the pointer in x19 to be our modded asset call table
-	ctx->X[19] = reinterpret_cast<uint64_t>(&newResAssetCallTableInlined);
+	ctx->X[19] = reinterpret_cast<uint64_t>(&cachedResAssetCallTable);
 
 	// Allow the function to continue
 	ctx->X[0] = 0;
@@ -408,7 +332,7 @@ extern "C" void exl_main(void* x0, void* x1)
 
 	// Install Function hooks
 	// searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset);
-	// searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne);
+	searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne);
 
 	// Unused
 	// emitImpl::InstallAtOffset(s_emitImpl);
