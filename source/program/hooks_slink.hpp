@@ -4,20 +4,53 @@
 #include "config.hpp"
 #include "xlink.hpp"
 #include "utils.hpp"
+#include "binaryoffsethelper.hpp"
 
-namespace csm::slink_hooks
+namespace csm::hooks_slink
 {
 // Get pointer to the callback object pointer in the SLink system.
 static xlink2::IEventCallbackSLink** GetRootEventCallbackPtr()
 {
-	return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
+	switch(csm::helpers::GetAppVersionIndex())
+	{
+		case 0: // 1.0.0
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v100, s_RootCallbackOffset_v100>();
+		case 1: // 1.1.0
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v110, s_RootCallbackOffset_v110>();
+		case 2: // 1.1.1
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v111, s_RootCallbackOffset_v111>();
+		case 3: // 1.1.2
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v112, s_RootCallbackOffset_v112>();
+		case 4: // 1.2.0
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v120, s_RootCallbackOffset_v120>();
+		case 5: // 1.2.1
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
+		default: // Default to latest version
+			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
+	}
 }
 
 // Get pointer to a function pointer within a vtable. This is in TOTK's sound manager and it registers the SLink root callback.
 using HookedFuncType = void (*)(uintptr_t, uintptr_t);
 static HookedFuncType* GetHookFuncPtr()
 {
-	return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
+	switch(csm::helpers::GetAppVersionIndex())
+	{
+		case 0: // 1.0.0
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v100>();
+		case 1: // 1.1.0
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v110>();
+		case 2: // 1.1.1
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v111>();
+		case 3: // 1.1.2
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v112>();
+		case 4: // 1.2.0
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v120>();
+		case 5: // 1.2.1
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
+		default: // Default to latest version
+			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
+	}
 }
 
 // Custom implementation of the callback object, which passes through to the original.

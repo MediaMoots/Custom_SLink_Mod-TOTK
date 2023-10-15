@@ -1,9 +1,10 @@
 #include "lib.hpp"
-#include "slink_hooks.hpp"
+#include "hooks_slink.hpp"
 #include "config.hpp"
 #include "hooks.hpp"
 #include "xlink.hpp"
 #include "utils.hpp"
+#include "binaryoffsethelper.hpp"
 
 extern "C" void exl_main(void* x0, void* x1)
 {
@@ -13,18 +14,29 @@ extern "C" void exl_main(void* x0, void* x1)
 	char buf[500];
 	PRINT("CSM: Loading Custom SLink Mod...");
 
-	// Install Function hooks
-	csm::hooks::searchAssetCallTableByName::InstallAtOffset(s_searchAssetCallTableByNameOffset_v121);
-	csm::hooks::searchAssetCallTableByNameInlinedOne::InstallAtOffset(s_searchAssetCallTableByNameInlinedOne_v121);
+	/* Initialize app version */
+	int versionIndex = csm::helpers::InitializeAppVersion();
+	if (versionIndex == 0xffff'ffff)
+	{
+		PRINT("CSM: Incompatible game version!");
+		return;
+	}
+	PRINT("CSM: Version Index %d", csm::helpers::GetAppVersionIndex());
 
-	// Unused Hooks
-	// emitImpl::InstallAtOffset(s_emitImpl);
-	// csm::searchAssetCallTableByNameInlinedTwo::InstallAtOffset(s_searchAssetCallTableByNameInlinedTwo);
-	// csm::searchAssetCallTableByNameInlinedThree::InstallAtOffset(s_searchAssetCallTableByNameInlinedThree);
-	// csm::searchAssetCallTableByNameInlinedFour::InstallAtOffset(s_searchAssetCallTableByNameInlinedFour);
+	// Install Function hooks
+	PRINT("CSM: Hooking Functions...");
+	csm::hooks::searchAssetCallTableByName::InstallAtOffset(
+		csm::helpers::GetAppVersionOffset(s_searchAssetCallTableByNameOffsets));
+
+	csm::hooks::searchAssetCallTableByNameInlinedOne::InstallAtOffset(
+		csm::helpers::GetAppVersionOffset(s_searchAssetCallTableByNameInlinedOneOffsets));
+
 
 	// SLink System vtable hooking
-	auto ptr = csm::slink_hooks::GetHookFuncPtr();
-	csm::slink_hooks::s_OriginalHookedFunc = *ptr;
-	*ptr = csm::slink_hooks::SLinkHookCallback;
+	PRINT("CSM: Hooking SLink...");
+	auto ptr = csm::hooks_slink::GetHookFuncPtr();
+	csm::hooks_slink::s_OriginalHookedFunc = *ptr;
+	*ptr = csm::hooks_slink::SLinkHookCallback;
+
+	return;
 }
