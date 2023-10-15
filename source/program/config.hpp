@@ -5,21 +5,21 @@
 // To Find VtableHookOffset - Search for GameSound
 
 // SLink Offsets -  All
-static constexpr int s_SLinkInstanceOffset_v100 = 0x0;
+static constexpr int s_SLinkInstanceOffset_v100 = 0x0463f758;
 static constexpr int s_SLinkInstanceOffset_v110 = 0x0471cc98;
 static constexpr int s_SLinkInstanceOffset_v111 = 0x04724bb8;
 static constexpr int s_SLinkInstanceOffset_v112 = 0x04717098;
 static constexpr int s_SLinkInstanceOffset_v120 = 0x0470b4f8;
 static constexpr int s_SLinkInstanceOffset_v121 = 0x0471a578;
 
-static constexpr int s_RootCallbackOffset_v100 = 0x0;
+static constexpr int s_RootCallbackOffset_v100 = 0x11D8;
 static constexpr int s_RootCallbackOffset_v110 = 0x11D8;
 static constexpr int s_RootCallbackOffset_v111 = 0x11D8;
 static constexpr int s_RootCallbackOffset_v112 = 0x11D8;
 static constexpr int s_RootCallbackOffset_v120 = 0x11D8;
 static constexpr int s_RootCallbackOffset_v121 = 0x11D8;
 
-static constexpr int s_VtableHookOffset_v100 = 0x0;
+static constexpr int s_VtableHookOffset_v100 = 0x042f9aa8;
 static constexpr int s_VtableHookOffset_v110 = 0x043c92c0;
 static constexpr int s_VtableHookOffset_v111 = 0x043d1238;
 static constexpr int s_VtableHookOffset_v112 = 0x043c33e8;
@@ -28,7 +28,7 @@ static constexpr int s_VtableHookOffset_v121 = 0x043C67D8;
 
 // Function Offsets - All
 static constexpr int s_searchAssetCallTableByNameOffsets[] = {
-                0x0, // 1.0.0
+                0x00ac1d28, // 1.0.0
                 0x00b27f54, // 1.1.0
                 0x00b3bcbc, // 1.1.1
                 0x00b1a49c, // 1.1.2
@@ -37,7 +37,7 @@ static constexpr int s_searchAssetCallTableByNameOffsets[] = {
             };
 
 static constexpr int s_searchAssetCallTableByNameInlinedOneOffsets[] = {
-                0x0, // 1.0.0
+                0x0097a17c, // 1.0.0
                 0x00809fdc, // 1.1.0
                 0x00755d44, // 1.1.1
                 0x00838268, // 1.1.2

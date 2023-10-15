@@ -5,7 +5,7 @@
 namespace nn::oe {
 
     struct DisplayVersion {
-        char mData[0x10];
+        char name[16];
     };
 
     void GetDisplayVersion(DisplayVersion*);

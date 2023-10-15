@@ -8,11 +8,12 @@
 
 extern "C" void exl_main(void* x0, void* x1)
 {
+	char buf[500];
+	PRINT("CSM: Loading Custom SLink Mod...");
+
 	// Init Hooking system
 	exl::hook::Initialize();
 
-	char buf[500];
-	PRINT("CSM: Loading Custom SLink Mod...");
 
 	/* Initialize app version */
 	int versionIndex = csm::helpers::InitializeAppVersion();

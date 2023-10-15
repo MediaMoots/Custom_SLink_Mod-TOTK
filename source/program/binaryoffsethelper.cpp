@@ -11,7 +11,7 @@ namespace csm::helpers
         /* Get Version */
         nn::oe::DisplayVersion displayVersion;
         nn::oe::GetDisplayVersion(&displayVersion);
-        strcpy(sAppVersion, displayVersion.mData);
+        strcpy(sAppVersion, displayVersion.name);
 
         /* Check for supported app version */
 	    sAppVersionIndex = 0xffff'ffff;
