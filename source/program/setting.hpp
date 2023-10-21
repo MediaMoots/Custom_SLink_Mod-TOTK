@@ -2,8 +2,8 @@
 
 #include "common.hpp"
 
-#define EXL_MODULE_NAME "exlaunch"
-#define EXL_MODULE_NAME_LEN 8
+#define EXL_MODULE_NAME "Custom_SLink_Mod-TOTK"
+#define EXL_MODULE_NAME_LEN 21
 
 #define EXL_DEBUG
 #define EXL_USE_FAKEHEAP
@@ -14,7 +14,7 @@
 
 namespace exl::setting {
     /* How large the fake .bss heap will be. */
-    constexpr size_t HeapSize = 0x5000;
+    constexpr size_t HeapSize = 0x10000;
 
     /* How large the JIT area will be for hooks. */
     constexpr size_t JitSize = 0x1000;

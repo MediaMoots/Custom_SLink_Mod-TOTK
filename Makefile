@@ -18,7 +18,7 @@ SD_OUT := atmosphere/contents/$(PROGRAM_ID)/exefs
 # Set load kind specific variables.
 ifeq ($(LOAD_KIND), Module)
     LOAD_KIND_ENUM := 2
-    BINARY_NAME := subsdk9 # TODO: support subsdkX?
+    BINARY_NAME := subsdk7 # TODO: support subsdkX?
     SPECS_NAME := module.specs
     MK_NAME := module.mk
 else ifeq ($(LOAD_KIND), AsRtld)

@@ -3,7 +3,7 @@
 #include "types.h"
 
 #include "util/util_typed_storage.hpp"
-
+#include "util/util_snprintf.hpp"
 
 typedef u32 Handle;
 typedef u32 Result;
