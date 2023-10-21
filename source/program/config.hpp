@@ -55,6 +55,9 @@ static constexpr int s_searchAssetCallTableByNameInlinedOneOffsets[] = {
 // CSM Config
 static constexpr char requiredPrefix[] = "CSM_";
 
+// CSM KeyName Types
+static constexpr char typeRandomPrefix[] = "_RND_";
+
 // Global Variables
 static xlink2::ResAssetCallTable cachedResAssetCallTable {};
 static xlink2::ResAssetParam* cachedResAssetParam;

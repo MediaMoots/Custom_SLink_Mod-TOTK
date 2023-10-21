@@ -1,6 +1,7 @@
 #pragma once
 
 #include "config.hpp"
+#include "keynameutils.hpp"
 #include "lib.hpp"
 #include "xlink.hpp"
 
@@ -20,9 +21,8 @@ if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) && cachedResAssetCa
 {
 	PRINT("CSM: searchAssetCallTableByName | Caught Slink Key: %s", searchKeyName)
 
-	// Change the keyname of the cached call table
-	cachedResAssetCallTable.mKeyName = new char[strlen(searchKeyName) + 1];
-	strncpy(cachedResAssetCallTable.mKeyName, searchKeyName, strlen(searchKeyName) + 1);
+	// Replace the name
+	csm::keynameutils::ReplaceRuntimeAssetName(&cachedResAssetCallTable, searchKeyName);
 
 	// Set modified ResAssetCallTable to the locator
 	*_locator->mResAssetCallTable = cachedResAssetCallTable;
@@ -54,8 +54,8 @@ if (!isValidKeyName && strstr(searchKeyName, requiredPrefix) && cachedResAssetCa
 {
 	PRINT("CSM: searchAssetCallTableByNameInlinedOne | Caught SLink Key: %s", searchKeyName)
 
-	cachedResAssetCallTable.mKeyName = new char[strlen(searchKeyName) + 1];
-	strncpy(cachedResAssetCallTable.mKeyName, searchKeyName, strlen(searchKeyName) + 1);
+	// Replace the name
+	csm::keynameutils::ReplaceRuntimeAssetName(&cachedResAssetCallTable, searchKeyName);
 
 	// Swap the pointer in x19 to be our modded asset call table
 	ctx->X[19] = reinterpret_cast<uint64_t>(&cachedResAssetCallTable);
