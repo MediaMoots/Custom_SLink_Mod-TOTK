@@ -1,10 +1,10 @@
-#include "lib.hpp"
-#include "hooks_slink.hpp"
+#include "binaryoffsethelper.hpp"
 #include "config.hpp"
 #include "hooks.hpp"
-#include "xlink.hpp"
+#include "hooks_slink.hpp"
+#include "lib.hpp"
 #include "utils.hpp"
-#include "binaryoffsethelper.hpp"
+#include "xlink.hpp"
 
 extern "C" void exl_main(void* x0, void* x1)
 {
@@ -27,10 +27,10 @@ extern "C" void exl_main(void* x0, void* x1)
 	// Install Function hooks
 	PRINT("CSM: Hooking Functions...");
 	csm::hooks::searchAssetCallTableByName::InstallAtOffset(
-		csm::helpers::GetAppVersionOffset(s_searchAssetCallTableByNameOffsets));
+	    csm::helpers::GetAppVersionOffset(s_searchAssetCallTableByNameOffsets));
 
 	csm::hooks::searchAssetCallTableByNameInlinedOne::InstallAtOffset(
-		csm::helpers::GetAppVersionOffset(s_searchAssetCallTableByNameInlinedOneOffsets));
+	    csm::helpers::GetAppVersionOffset(s_searchAssetCallTableByNameInlinedOneOffsets));
 
 
 	// SLink System vtable hooking

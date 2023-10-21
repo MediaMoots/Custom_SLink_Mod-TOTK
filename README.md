@@ -13,7 +13,6 @@ If a bwav with that name exists in the loaded bars for that event/actor/etc then
 Use https://github.com/MediaMoots/TOTK_BARS_Tool to add bwavs to bars.
 
 ## ToDo
-- Support random sound effect playback
 - Support more AssetParam configs
 
 ## Credit

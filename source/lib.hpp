@@ -23,6 +23,7 @@
 #include "lib/util/modules.hpp"
 #include "lib/util/ptr_path.hpp"
 #include "lib/util/typed_storage.hpp"
+#include "lib/util/random.hpp"
 
 #include "lib/hook/base.hpp"
 #include "lib/hook/class.hpp"

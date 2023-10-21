@@ -3,7 +3,6 @@
 #include "config.hpp"
 #include "lib.hpp"
 #include "xlink.hpp"
-#include <random>
 
 namespace csm::keynameutils
 {
@@ -17,10 +16,7 @@ enum class KeyNameTypes : u8
 template <typename T>
 T RandomRange(T range_from, T range_to)
 {
-	std::random_device rand_dev;
-	std::mt19937 generator(rand_dev());
-	std::uniform_int_distribution<T> distr(range_from, range_to);
-	return distr(generator);
+	return exl::util::exl_random() % ((range_to - range_from) + 1) + range_from;
 }
 
 static KeyNameTypes GetTypeFromKeyname(const char* keyName)
