@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <bit>
 #include "types.h"
+#include "utils.hpp"
 
 namespace sead {
 
@@ -49,8 +50,8 @@ namespace xlink2 {
 
     struct ResAssetParam {
         ulong mBitfield;
-
-        inline int GetCount() {
+        
+	    inline int GetCount() {
             return std::popcount(mBitfield);
         }
 
@@ -65,6 +66,116 @@ namespace xlink2 {
         inline ResParam* GetNthValue(int n) {
             return &GetValues()[sead::BitFlagUtil::CountRightOnBit64(mBitfield, n) - 1];
         }
+
+        static constexpr size_t CalculateSize(int count) {
+            return sizeof(ResAssetParam) + (sizeof(ResParam) * count);
+        } 
+
+        static void SetNthBitfieldValue(xlink2::ResAssetParam*& resAssetParam, int index, bool clearValue)
+        {
+            if (clearValue)
+            {
+                ulong mask = 1ul << index;
+                resAssetParam->mBitfield = resAssetParam->mBitfield & (~mask);
+                return;
+            }
+            else
+            {
+                // Calculate the new bitfield by setting the bit at the specified index to 1
+                ulong newBit = 1ul << index; // New bit
+                resAssetParam->mBitfield = resAssetParam->mBitfield | newBit;
+                return;
+            }
+		}
+
+        static void AddNthValue(xlink2::ResAssetParam*& resAssetParam, int index, const xlink2::ResParam& newValue) 
+        {
+            // Valid Check
+            if (index < 0) {
+                return;
+            }
+
+            // Calculate the new size, which includes space for the new ResParam
+            size_t newSize = resAssetParam->CalculateSize(resAssetParam->GetCount() + 1);
+
+            // Allocate memory for the new block
+            xlink2::ResAssetParam* newResAssetParam = (xlink2::ResAssetParam*)malloc(newSize);
+
+            // Copy the existing data before the insertion point
+            std::memcpy(newResAssetParam, resAssetParam, sizeof(xlink2::ResAssetParam) + sizeof(xlink2::ResParam) * index);
+
+            // Set bitfield value at index
+		    SetNthBitfieldValue(newResAssetParam, index, false);
+
+		    // Calculate the index in the ResParam array
+            int resParamIndex = 0;
+            ulong bitfield = newResAssetParam->mBitfield;
+            while (index > 0) {
+                if (bitfield & 1ul) {
+                    resParamIndex++;
+                }
+                bitfield >>= 1;
+                index--;
+            }
+
+		    // Set the new ResParam at the calculated index
+            xlink2::ResParam* newResParam = &newResAssetParam->GetValues()[resParamIndex];
+            *newResParam = newValue;
+
+            // Copy the remaining existing data after the insertion point
+            std::memcpy(
+                &newResAssetParam->GetValues()[resParamIndex + 1],
+                &resAssetParam->GetValues()[resParamIndex],
+                sizeof(xlink2::ResParam) * (resAssetParam->GetCount() - resParamIndex)
+            );
+
+            // Replace the old resAssetParam with the new one
+            free(resAssetParam); // Free the old memory
+            resAssetParam = newResAssetParam; // Update the pointer
+        }
+
+        static void RemoveNthValue(xlink2::ResAssetParam*& resAssetParam, int indexToRemove) 
+        {
+            if (indexToRemove < 0) {
+                return;
+            }
+
+            // Calculate the new size, which excludes space for the removed ResParam
+            size_t newSize = resAssetParam->CalculateSize(resAssetParam->GetCount() - 1);
+
+            // Allocate memory for the new block
+            xlink2::ResAssetParam* newResAssetParam = (xlink2::ResAssetParam*)malloc(newSize);
+
+            // Copy the existing data before the removed element
+            std::memcpy(newResAssetParam, resAssetParam, sizeof(xlink2::ResAssetParam) + sizeof(xlink2::ResParam) * indexToRemove);
+
+            // Calculate the index in the ResParam array
+            int resParamIndex = 0;
+            ulong bitfield = newResAssetParam->mBitfield;
+		    int tempindexToRemove = indexToRemove;
+		    while (tempindexToRemove > 0) {
+                if (bitfield & 1ul) {
+                    resParamIndex++;
+                }
+                bitfield >>= 1;
+                tempindexToRemove--;
+            }
+
+            // Copy the remaining existing data after the removed element
+            std::memcpy(
+                &newResAssetParam->GetValues()[resParamIndex],
+                &resAssetParam->GetValues()[resParamIndex + 1],
+                sizeof(xlink2::ResParam) * (resAssetParam->GetCount() - resParamIndex - 1)
+            );
+
+            // Update the mBitfield
+            SetNthBitfieldValue(newResAssetParam, indexToRemove, true);
+
+            // Replace the old resAssetParam with the new one
+            free(resAssetParam); // Free the old memory
+            resAssetParam = newResAssetParam; // Update the pointer
+        }
+
     };
 
     struct ResContainerParam;

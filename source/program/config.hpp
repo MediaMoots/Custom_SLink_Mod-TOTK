@@ -57,4 +57,4 @@ static constexpr char requiredPrefix[] = "CSM_";
 
 // Global Variables
 static xlink2::ResAssetCallTable cachedResAssetCallTable {};
-static xlink2::ResAssetParam cachedResAssetParam;
+static xlink2::ResAssetParam* cachedResAssetParam;

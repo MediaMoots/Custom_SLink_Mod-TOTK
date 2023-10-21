@@ -1,32 +1,32 @@
-#pragma once 
+#pragma once
 
-#include "lib.hpp"
-#include "config.hpp"
-#include "xlink.hpp"
-#include "utils.hpp"
 #include "binaryoffsethelper.hpp"
+#include "config.hpp"
+#include "lib.hpp"
+#include "utils.hpp"
+#include "xlink.hpp"
 
 namespace csm::hooks_slink
 {
 // Get pointer to the callback object pointer in the SLink system.
 static xlink2::IEventCallbackSLink** GetRootEventCallbackPtr()
 {
-	switch(csm::helpers::GetAppVersionIndex())
+	switch (csm::helpers::GetAppVersionIndex())
 	{
-		case 0: // 1.0.0
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v100, s_RootCallbackOffset_v100>();
-		case 1: // 1.1.0
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v110, s_RootCallbackOffset_v110>();
-		case 2: // 1.1.1
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v111, s_RootCallbackOffset_v111>();
-		case 3: // 1.1.2
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v112, s_RootCallbackOffset_v112>();
-		case 4: // 1.2.0
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v120, s_RootCallbackOffset_v120>();
-		case 5: // 1.2.1
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
-		default: // Default to latest version
-			return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
+	case 0: // 1.0.0
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v100, s_RootCallbackOffset_v100>();
+	case 1: // 1.1.0
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v110, s_RootCallbackOffset_v110>();
+	case 2: // 1.1.1
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v111, s_RootCallbackOffset_v111>();
+	case 3: // 1.1.2
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v112, s_RootCallbackOffset_v112>();
+	case 4: // 1.2.0
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v120, s_RootCallbackOffset_v120>();
+	case 5: // 1.2.1
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
+	default: // Default to latest version
+		return exl::util::pointer_path::FollowSafe<xlink2::IEventCallbackSLink*, s_SLinkInstanceOffset_v121, s_RootCallbackOffset_v121>();
 	}
 }
 
@@ -34,22 +34,22 @@ static xlink2::IEventCallbackSLink** GetRootEventCallbackPtr()
 using HookedFuncType = void (*)(uintptr_t, uintptr_t);
 static HookedFuncType* GetHookFuncPtr()
 {
-	switch(csm::helpers::GetAppVersionIndex())
+	switch (csm::helpers::GetAppVersionIndex())
 	{
-		case 0: // 1.0.0
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v100>();
-		case 1: // 1.1.0
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v110>();
-		case 2: // 1.1.1
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v111>();
-		case 3: // 1.1.2
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v112>();
-		case 4: // 1.2.0
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v120>();
-		case 5: // 1.2.1
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
-		default: // Default to latest version
-			return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
+	case 0: // 1.0.0
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v100>();
+	case 1: // 1.1.0
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v110>();
+	case 2: // 1.1.1
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v111>();
+	case 3: // 1.1.2
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v112>();
+	case 4: // 1.2.0
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v120>();
+	case 5: // 1.2.1
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
+	default: // Default to latest version
+		return exl::util::pointer_path::FollowSafe<HookedFuncType, s_VtableHookOffset_v121>();
 	}
 }
 
@@ -122,17 +122,48 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 		}
 
 		// GroupName offsets | Index 2
-		// System = 450297
-		// Player = 392072
+		// SystemDefault = 450297
+		// PlayerVoice = 392072
+
+		// Bone Offsets | Index 16
+		// Lip_U = 295237
+
+		// Volume Offsets | Index 3
 
 		if (arg.mResAssetCallTable->IsAsset() && !cachedResAssetCallTable.mParamAsAsset
 		    && arg.mResAssetCallTable->mParamAsAsset->GetNthValue(2)->mValue == 450297)
 		{
 			cachedResAssetCallTable = *arg.mResAssetCallTable;
+
+			// Create cachedResAssetParam only once
+			if (cachedResAssetParam == nullptr)
+			{
+				auto sizeOfNewResAssetParam = xlink2::ResAssetParam::CalculateSize(arg.mResAssetCallTable->mParamAsAsset->GetCount());
+				cachedResAssetParam = (xlink2::ResAssetParam*)malloc(sizeOfNewResAssetParam);
+				std::memcpy(cachedResAssetParam, arg.mResAssetCallTable->mParamAsAsset, sizeOfNewResAssetParam);
+
+				// Change values
+
+				// Change Group Name to PlayerVoice
+				cachedResAssetParam->GetNthValue(2)->mValue = 392072;
+
+				// Set Bone = Lip_U
+				xlink2::ResParam newResParam = xlink2::ResParam();
+				newResParam.mType = xlink2::ValueReferenceType::String;
+				newResParam.mValue = 295237;
+				xlink2::ResAssetParam::AddNthValue(cachedResAssetParam, 16, newResParam);
+
+				// Disable volume param
+				xlink2::ResAssetParam::RemoveNthValue(cachedResAssetParam, 3);
+			}
+
+			// Set param pointer
+			cachedResAssetCallTable.mParamAsAsset = cachedResAssetParam;
+
 			PRINT("CSM: replaceAssetInfo | Updating Presets with: %s", arg.mResAssetCallTable->mKeyName)
 		}
 
-		// if (arg.mResAssetCallTable->IsAsset() && arg.mResAssetCallTable->mParamAsAsset && strstr(arg.mResAssetCallTable->mKeyName, "PV"))
+		// if (arg.mResAssetCallTable->IsAsset() && arg.mResAssetCallTable->mParamAsAsset && strstr(arg.mResAssetCallTable->mKeyName, "mc"))
 		// {
 		// 	PRINT("CSM: replaceAssetInfo | SLink Name: %s", arg.mResAssetCallTable->mKeyName);
 
@@ -140,6 +171,12 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 
 		// 	if (arg.mResAssetCallTable->mParamAsAsset->GetCount() >= 4)
 		// 	{
+		// 		PRINT("CSM: replaceAssetInfo | Bitfield: %d", cachedResAssetCallTable.mParamAsAsset->mBitfield);
+		// 		PRINT("CSM: replaceAssetInfo | Param 2 Type: %d", cachedResAssetCallTable.mParamAsAsset->GetNthValue(2)->mType);
+		// 		PRINT("CSM: replaceAssetInfo | Param 2 Value: %d", cachedResAssetCallTable.mParamAsAsset->GetNthValue(2)->mValue);
+		// 		PRINT("CSM: replaceAssetInfo | Param 16 Type: %d", cachedResAssetCallTable.mParamAsAsset->GetNthValue(16)->mType);
+		// 		PRINT("CSM: replaceAssetInfo | Param 16 Value: %d", cachedResAssetCallTable.mParamAsAsset->GetNthValue(16)->mValue);
+
 		// 		PRINT("CSM: replaceAssetInfo | Param 0 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(0)->mType);
 		// 		PRINT("CSM: replaceAssetInfo | Param 0 Value: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(0)->mValue);
 		// 		PRINT("CSM: replaceAssetInfo | Param 1 Type: %d", arg.mResAssetCallTable->mParamAsAsset->GetNthValue(1)->mType);
