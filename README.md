@@ -34,7 +34,7 @@ Any slink calls with the prefix `CSM_RND_` will be treated as a random sound pla
 
 A number needs to be provided after `CSM_RND_` that indicates the maximum number of random sounds.
 
-The mod will then call a random sound in range on 0 -> the maximum number specified. 
+The mod will then call a random sound in range of 0 -> the maximum number specified. 
 
 ## Note
 Use https://github.com/MediaMoots/TOTK_BARS_Tool to add bwavs to bars.
