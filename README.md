@@ -32,7 +32,7 @@ If a bwav with that name exists in the loaded bars for that event/actor/etc then
 #### Notes
 Any slink calls with the prefix `CSM_RND_` will be treated as a random sound playback.
 
-A number needs to be provided after `CSM_RND_` that indicated the maximum number of random sounds.
+A number needs to be provided after `CSM_RND_` that indicates the maximum number of random sounds.
 
 The mod will then call a random sound in range on 0 -> the maximum number specified. 
 
