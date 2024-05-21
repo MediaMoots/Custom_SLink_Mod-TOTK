@@ -1,8 +1,9 @@
 {
 	"name":	"Application",
-	"title_id":	"0x0100F2C0115B6000",
+	"title_id":	"0x0100f2c0115b6000",
 	"title_id_range_min":	"0x0100000000010000",
 	"title_id_range_max":	"0x01ffffffffffffff",
+	"system_resource_size": "0x01000000",
 	"main_thread_stack_size":	"0x00100000",
 	"main_thread_priority":	44,
 	"default_cpu_id":	0,
@@ -10,13 +11,14 @@
 	"is_retail":	true,
 	"pool_partition":	0,
 	"is_64_bit":	true,
+	"disable_device_address_space_merge":	true,
+	"optimize_memory_allocation":	true,
 	"address_space_type":	3,
 	"filesystem_access":	{
 		"permissions":	"0xffffffffffffffff"
 	},
-	"service_access":	["*"],
+	"service_access":	["acc:u0", "aoc:u", "apm", "appletOE", "audin:u", "audout:u", "audren:u", "banana", "bcat:u", "bsd:u", "bsdcfg", "caps:su", "caps:u", "csrng", "ectx:aw", "friend:u", "fsp-srv", "hid", "htc", "htc:tenv", "htcs", "hwopus", "irs", "ldn:u", "ldr:ro", "lm", "mii:u", "mm:u", "mnpp:app", "nfc:mf:u", "nfc:user", "nfp:user", "ngct:u", "nifm:u", "nim:eca", "notif:a", "nsd:u", "ntc", "nvdrv", "pcm", "pctl", "pl:u", "prepo:u", "set", "sfdnsres", "ssl", "time:u", "vi:u"],
 	"service_host":	[],
-	"system_resource_size": "0x01000000",
 	"kernel_capabilities":	[{
 			"type":	"kernel_flags",
 			"value":	{
@@ -170,8 +172,8 @@
 		}, {
 			"type":	"debug_flags",
 			"value":	{
-				"allow_debug":	false,
-				"force_debug":	true
+				"allow_debug":	true,
+				"force_debug":	false
 			}
 		}]
 }

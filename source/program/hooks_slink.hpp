@@ -124,6 +124,11 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 		// GroupName offsets | Index 2
 		// SystemDefault = 450297
 		// PlayerVoice = 392072
+		// DemoDefault = 121443
+		// Player = 385960
+
+		// Priority Offsets | Index 13
+		// 1 = 4
 
 		// Bone Offsets | Index 16
 		// Lip_U = 295237
@@ -144,14 +149,17 @@ struct CustomEventCallbackSLink : xlink2::IEventCallbackSLink
 
 				// Change values
 
-				// Change Group Name to PlayerVoice
-				cachedResAssetParam->GetNthValue(2)->mValue = 392072;
+				// Change Group Name to DemoDefault
+				cachedResAssetParam->GetNthValue(2)->mValue = 121443;
 
 				// Set Bone = Lip_U
 				xlink2::ResParam newResParam = xlink2::ResParam();
 				newResParam.mType = xlink2::ValueReferenceType::String;
 				newResParam.mValue = 295237;
 				xlink2::ResAssetParam::AddNthValue(cachedResAssetParam, 16, newResParam);
+
+				// Change Priority to 1
+				cachedResAssetParam->GetNthValue(13)->mValue = 4;
 
 				// Disable volume param
 				xlink2::ResAssetParam::RemoveNthValue(cachedResAssetParam, 3);
